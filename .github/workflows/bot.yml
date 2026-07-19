@@ -1,0 +1,45 @@
+name: Islami Bilgi Botu
+
+on:
+  schedule:
+    - cron: "0 9-21 * * *"
+      timezone: "Europe/Istanbul"
+  workflow_dispatch:
+    inputs:
+      force_hour:
+        description: "Test için saat zorla (0-23), boş bırakılırsa gerçek saat kullanılır"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  send-message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repoyu indir
+        uses: actions/checkout@v4
+
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Bağımlılıkları yükle
+        run: pip install -r requirements.txt
+
+      - name: Botu çalıştır
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          FORCE_HOUR: ${{ github.event.inputs.force_hour }}
+        run: |
+          if [ -z "$FORCE_HOUR" ]; then unset FORCE_HOUR; fi
+          python bot.py
+
+      - name: state.json değişikliğini commit'le
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "state.json guncellendi [skip ci]"
+          file_pattern: state.json
