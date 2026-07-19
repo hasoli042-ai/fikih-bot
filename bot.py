@@ -78,6 +78,8 @@ def send_message(text):
         "disable_web_page_preview": True,
     }
     resp = requests.post(url, data=payload, timeout=30)
+    if resp.status_code != 200:
+        print("TELEGRAM HATA DETAYI:", resp.text)
     resp.raise_for_status()
     return resp.json()
 
